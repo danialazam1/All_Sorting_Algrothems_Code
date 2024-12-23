@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorting Algorithms Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .array-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+
+        .array-element {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border: 2px solid #007acc;
+            background-color: #e3f2fd;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .highlight-cell {
+            background-color: #ffeb3b !important;
+        }
+
+        .sorted-cell {
+            background-color: #66bb6a !important;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center bg-gray-100 py-10">
+    <h1 class="text-4xl font-bold mb-8">Sorting Algorithms Visualizer</h1>
+     
+    <div id="array-container" class="array-container"></div>
+
+    <div id="steps-container" class="w-4/5"></div>
+
+    <div class="flex gap-4 mt-5">
+        <input id="array-input" type="text" placeholder="Enter numbers separated by commas" 
+            class="p-2 border rounded w-72">
+        <button id="insert-btn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Insert Elements</button>
+        <button id="clear-btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Clear Array</button>
+        <button id="bubble-sort-btn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Bubble Sort</button>
+        <button id="insertion-sort-btn" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Insertion Sort</button>
+        <button id="selection-sort-btn" class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">Selection Sort</button>
+        <button id="merge-sort-btn" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">Merge Sort</button>
+    </div>
+  <div class="justify-center text-bold pt-auto"> Created by Danial Azam </div>
+    <script>
+        let array = [];
+
+        // Function to create the main array visualization
+        function createArrayContainer(arr) {
+            const container = document.getElementById('array-container');
+            container.innerHTML = '';
+            arr.forEach(value => {
+                const element = document.createElement('div');
+                element.className = 'array-element';
+                element.textContent = value;
+                container.appendChild(element);
+            });
+        }
+
+        // Function to clear all visualizations
+        function clearVisuals() {
+            document.getElementById('array-container').innerHTML = '';
+            document.getElementById('steps-container').innerHTML = '';
+        }
+
+        // Bubble Sort function with in-place element swapping
+        async function bubbleSortVisualize(arr) {
+            let n = arr.length;
+            const container = document.getElementById('array-container');
+
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    // Highlight the current elements being compared
+                    const elements = container.children;
+                    elements[j].classList.add('highlight-cell');
+                    elements[j + 1].classList.add('highlight-cell');
+
+                    // Pause for visualization effect
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Swap the elements if needed
+                    if (arr[j] > arr[j + 1]) {
+                        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+
+                        // Update the UI to reflect the swap
+                        elements[j].textContent = arr[j];
+                        elements[j + 1].textContent = arr[j + 1];
+                    }
+
+                    // Remove the highlight after comparison and swap
+                    elements[j].classList.remove('highlight-cell');
+                    elements[j + 1].classList.remove('highlight-cell');
+                }
+
+                // Mark the elements that are correctly sorted (green background)
+                const allElements = container.querySelectorAll('.array-element');
+                allElements[n - i - 1].classList.add('sorted-cell');
+            }
+
+            // Mark all elements as sorted
+            const allElements = container.querySelectorAll('.array-element');
+            allElements.forEach(element => {
+                element.classList.add('sorted-cell');
+            });
+        }
+
+        // Insertion Sort function
+        async function insertionSortVisualize(arr) {
+            let sorted = [...arr];
+            for (let i = 1; i < sorted.length; i++) {
+                let key = sorted[i];
+                let j = i - 1;
+                while (j >= 0 && sorted[j] > key) {
+                    sorted[j + 1] = sorted[j];
+                    j--;
+                    createArrayContainer(sorted); // Visualize the array after shifting
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Pause for visualization
+                }
+                sorted[j + 1] = key;
+                createArrayContainer(sorted); // Visualize the array after insertion
+            }
+            return sorted;
+        }
+
+        // Selection Sort function
+        async function selectionSortVisualize(arr) {
+            let sorted = [...arr];
+            for (let i = 0; i < sorted.length - 1; i++) {
+                let minIndex = i;
+                for (let j = i + 1; j < sorted.length; j++) {
+                    if (sorted[j] < sorted[minIndex]) {
+                        minIndex = j;
+                    }
+                }
+                if (minIndex !== i) {
+                    [sorted[i], sorted[minIndex]] = [sorted[minIndex], sorted[i]];
+                    createArrayContainer(sorted); // Visualize the array after swap
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Pause for visualization
+                }
+            }
+            return sorted;
+        }
+
+        // Merge Sort function with visualization of steps
+        async function mergeSortVisualize(arr, depth = 0) {
+            if (arr.length <= 1) return arr;
+
+            const mid = Math.floor(arr.length / 2);
+            const left = arr.slice(0, mid);
+            const right = arr.slice(mid);
+
+            // Show the current step of dividing the array
+            createArrayContainer(arr);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Pause for visualization
+
+            const sortedLeft = await mergeSortVisualize(left, depth + 1);
+            const sortedRight = await mergeSortVisualize(right, depth + 1);
+
+            const merged = await merge(sortedLeft, sortedRight);
+
+            // Show the current step of merging the arrays
+            createArrayContainer(merged);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Pause for visualization
+
+            return merged;
+        }
+
+        // Merge function for Merge Sort
+        async function merge(left, right) {
+            let result = [];
+            let i = 0, j = 0;
+
+            while (i < left.length && j < right.length) {
+                if (left[i] < right[j]) {
+                    result.push(left[i]);
+                    i++;
+                } else {
+                    result.push(right[j]);
+                    j++;
+                }
+            }
+
+            while (i < left.length) {
+                result.push(left[i]);
+                i++;
+            }
+
+            while (j < right.length) {
+                result.push(right[j]);
+                j++;
+            }
+
+            return result;
+        }
+
+        // Event listener for Insert Elements button
+        document.getElementById('insert-btn').addEventListener('click', () => {
+            const input = document.getElementById('array-input').value;
+            array = input.split(',').map(num => parseInt(num.trim(), 10));
+
+            if (array.some(isNaN) || array.length === 0) {
+                alert('Please enter a valid array of numbers.');
+                return;
+            }
+
+            createArrayContainer(array);
+        });
+
+        // Event listener for Clear Array button
+        document.getElementById('clear-btn').addEventListener('click', clearVisuals);
+
+        // Event listener for Bubble Sort button
+        document.getElementById('bubble-sort-btn').addEventListener('click', async () => {
+            clearVisuals();
+            createArrayContainer(array);
+            await bubbleSortVisualize(array);
+        });
+
+        // Event listener for Insertion Sort button
+        document.getElementById('insertion-sort-btn').addEventListener('click', async () => {
+            clearVisuals();
+            createArrayContainer(array);
+            await insertionSortVisualize(array);
+        });
+
+        // Event listener for Selection Sort button
+        document.getElementById('selection-sort-btn').addEventListener('click', async () => {
+            clearVisuals();
+            createArrayContainer(array);
+            await selectionSortVisualize(array);
+        });
+
+        // Event listener for Merge Sort button
+        document.getElementById('merge-sort-btn').addEventListener('click', async () => {
+            clearVisuals();
+            createArrayContainer(array);
+            await mergeSortVisualize(array);
+        });
+    </script>
+</body>
+</html>
